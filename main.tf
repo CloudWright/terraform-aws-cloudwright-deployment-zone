@@ -5,7 +5,7 @@ locals {
 
 resource "aws_iam_user" "cloudwright_admin" {
   name = "${var.deployment_zone_namespace}-cw-admin"
-  path = locals.iam_path
+  path = "${local.iam_path}"
 }
 
 resource "aws_iam_role" "cloudwright_function" {
@@ -59,7 +59,7 @@ EOF
 resource "aws_s3_bucket" "artifact_bucket" {
   bucket = "${var.deployment_zone_namespace}-cloudwright-artifacts"
   acl    = "private"
-  region   = "${var.region}"
+  region = "${var.region}"
   policy = <<EOF
   {
   "Version": "2012-10-17",
@@ -128,7 +128,7 @@ resource "aws_iam_user_policy_attachment" "admin_cloudwatch_admin" {
 
 resource "aws_iam_policy" "sqs_send_receive" {
   name        = "CloudWrightSendSQSMessage${var.deployment_zone_namespace}"
-  path = locals.iam_path
+  path        = "${local.iam_path}"
   description = "My test policy"
 
   policy = <<EOF
@@ -172,7 +172,7 @@ data "aws_iam_user" "root" {
 resource "aws_kms_key" "cloudwright_key" {
   description             = "CloudWright key"
   deletion_window_in_days = 10
-  policy = <<EOF
+  policy                  = <<EOF
   {
   "Version": "2012-10-17",
   "Statement": [
@@ -208,7 +208,7 @@ resource "aws_kms_key" "cloudwright_key" {
 }
 
 resource "aws_api_gateway_rest_api" "gateway" {
-  name = "${var.deployment_zone_namespace}CloudWright"
+  name        = "${var.deployment_zone_namespace}CloudWright"
   description = "The ${var.deployment_zone_name} CloudWright HTTP Endpoint Gateway"
 
   endpoint_configuration {
