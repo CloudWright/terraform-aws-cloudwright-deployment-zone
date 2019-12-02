@@ -16,8 +16,7 @@ resource "aws_iam_user" "cloudwright_admin" {
 resource "aws_iam_role" "cloudwright_function" {
   name = "${var.deployment_zone_namespace}-cw-fn"
 
-  assume_role_policy = <<EOF
-{
+  assume_role_policy = <<EOF{
   "Version": "2012-10-17",
   "Statement": [
     {
@@ -44,8 +43,7 @@ EOF
 resource "aws_iam_role" "cloudwright_invoker" {
   name = "${var.deployment_zone_namespace}-cw-invoke"
 
-  assume_role_policy = <<EOF
-{
+  assume_role_policy = <<EOF{
  "Version": "2012-10-17",
   "Statement": {
     "Effect": "Allow",
@@ -65,8 +63,7 @@ resource "aws_s3_bucket" "artifact_bucket" {
   bucket = "${var.deployment_zone_namespace}-cloudwright-artifacts"
   acl    = "private"
   region = "${var.region}"
-  policy = <<EOF
-  {
+  policy = <<EOF{
   "Version": "2012-10-17",
   "Statement": [
     {
@@ -136,8 +133,7 @@ resource "aws_iam_policy" "sqs_send_receive" {
   path        = "${local.iam_path}"
   description = "My test policy"
 
-  policy = <<EOF
-{
+  policy = <<EOF{
 "Version": "2012-10-17",
 "Statement": [
   {
@@ -173,8 +169,7 @@ resource "aws_iam_role_policy_attachment" "invoker_lambda_execute" {
 resource "aws_kms_key" "cloudwright_key" {
   description             = "CloudWright key"
   deletion_window_in_days = 10
-  policy                  = <<EOF
-  {
+  policy                  = <<EOF{
   "Version": "2012-10-17",
   "Statement": [
     {
