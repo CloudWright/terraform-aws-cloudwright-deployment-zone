@@ -83,7 +83,7 @@ resource "aws_s3_bucket" "artifact_bucket" {
         "s3:*"
       ],
       "Resource": [
-        "*"
+        "arn:aws:s3:::${var.deployment_zone_namespace}-cloudwright-artifacts"
       ]
     },
     {
@@ -98,7 +98,7 @@ resource "aws_s3_bucket" "artifact_bucket" {
       },
       "Action": "s3:*Object",
       "Resource": [
-        "*"
+        "arn:aws:s3:::${var.deployment_zone_namespace}-cloudwright-artifacts/*"
       ]
     }
   ]
