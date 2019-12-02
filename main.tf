@@ -1,6 +1,11 @@
+data "aws_caller_identity" "current" {}
+
+
 locals {
   iam_path = "/cloudwright/${var.deployment_zone_namespace}/"
+  root_user_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
 }
+
 
 
 resource "aws_iam_user" "cloudwright_admin" {
@@ -165,10 +170,6 @@ resource "aws_iam_role_policy_attachment" "invoker_lambda_execute" {
   policy_arn = "arn:aws:iam::aws:policy/AWSLambdaExecute"
 }
 
-data "aws_iam_user" "root" {
-  user_name = "root"
-}
-
 resource "aws_kms_key" "cloudwright_key" {
   description             = "CloudWright key"
   deletion_window_in_days = 10
@@ -197,7 +198,7 @@ resource "aws_kms_key" "cloudwright_key" {
     {
       "Sid": "Enable IAM User Permissions",
       "Effect": "Allow",
-      "Principal": {"AWS": "${data.aws_iam_user.root.arn}"},
+      "Principal": {"AWS": "${local.root_user_arn}"},
       "Action": "kms:*",
       "Resource": "*"
     }
