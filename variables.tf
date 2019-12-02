@@ -1,6 +1,6 @@
 variable "region" {
   type        = string
-  description = "The GCP region to deploy infrastructure to"
+  description = "The AWS region to deploy infrastructure to"
 }
 
 variable "deployment_zone_name" {

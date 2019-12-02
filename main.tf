@@ -150,18 +150,18 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "function_sqs_use" {
-  user       = "${aws_iam_role.cloudwright_function.name}"
+  role       = "${aws_iam_role.cloudwright_function.name}"
   policy_arn = aws_iam_policy.sqs_send_receive.arn
 }
 
 resource "aws_iam_role_policy_attachment" "function_lambda_vpc_use" {
-  user       = "${aws_iam_role.cloudwright_function.name}"
+  role       = "${aws_iam_role.cloudwright_function.name}"
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
 
 resource "aws_iam_role_policy_attachment" "invoker_lambda_execute" {
-  user       = "${aws_iam_role.cloudwright_invoker.name}"
+  role       = "${aws_iam_role.cloudwright_invoker.name}"
   policy_arn = "arn:aws:iam::aws:policy/AWSLambdaExecute"
 }
 
