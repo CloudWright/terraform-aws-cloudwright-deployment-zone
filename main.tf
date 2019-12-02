@@ -15,7 +15,7 @@ resource "aws_iam_user" "cloudwright_admin" {
 
 resource "aws_iam_role" "cloudwright_function" {
   name = "${var.deployment_zone_namespace}-cw-fn"
-
+  path = "${local.iam_path}"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -43,7 +43,7 @@ EOF
 
 resource "aws_iam_role" "cloudwright_invoker" {
   name = "${var.deployment_zone_namespace}-cw-invoke"
-
+  path = "${local.iam_path}"
   assume_role_policy = <<EOF
 {
  "Version": "2012-10-17",
