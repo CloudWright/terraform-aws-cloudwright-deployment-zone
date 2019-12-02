@@ -197,7 +197,7 @@ resource "aws_kms_key" "cloudwright_key" {
     {
       "Sid": "Enable IAM User Permissions",
       "Effect": "Allow",
-      "Principal": {"AWS": "${aws_iam_user.root.arn}"},
+      "Principal": {"AWS": "${data.aws_iam_user.root.arn}"},
       "Action": "kms:*",
       "Resource": "*"
     }
