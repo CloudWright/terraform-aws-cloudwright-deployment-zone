@@ -11,6 +11,8 @@ locals {
 resource "aws_iam_user" "cloudwright_admin" {
   name = "${var.deployment_zone_namespace}-cw-admin"
   path = "${local.iam_path}"
+
+ 
 }
 
 resource "aws_iam_role" "cloudwright_function" {
@@ -106,35 +108,34 @@ resource "aws_s3_bucket" "artifact_bucket" {
   EOF
 }
 
-resource "aws_iam_user_policy_attachment" "admin_lambda_admin" {
-  user       = "${aws_iam_user.cloudwright_admin.name}"
-  policy_arn = "arn:aws:iam::aws:policy/AWSLambdaFullAccess"
-}
+// resource "aws_iam_user_policy_attachment" "admin_lambda_admin" {
+//   user       = "${aws_iam_user.cloudwright_admin.name}"
+//   policy_arn = "arn:aws:iam::aws:policy/AWSLambdaFullAccess"
+// }
 
 resource "aws_iam_user_policy_attachment" "admin_iam_read" {
   user       = "${aws_iam_user.cloudwright_admin.name}"
   policy_arn = "arn:aws:iam::aws:policy/IAMReadOnlyAccess"
 }
 
-resource "aws_iam_user_policy_attachment" "admin_api_gateway_admin" {
-  user       = "${aws_iam_user.cloudwright_admin.name}"
-  policy_arn = "arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator"
-}
+// resource "aws_iam_user_policy_attachment" "admin_api_gateway_admin" {
+//   user       = "${aws_iam_user.cloudwright_admin.name}"
+//   policy_arn = "arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator"
+// }
 
-resource "aws_iam_user_policy_attachment" "admin_sqs_admin" {
-  user       = "${aws_iam_user.cloudwright_admin.name}"
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
-}
+// resource "aws_iam_user_policy_attachment" "admin_sqs_admin" {
+//   user       = "${aws_iam_user.cloudwright_admin.name}"
+//   policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess"
+// }
 
-resource "aws_iam_user_policy_attachment" "admin_cloudwatch_admin" {
-  user       = "${aws_iam_user.cloudwright_admin.name}"
-  policy_arn = "arn:aws:iam::aws:policy/CloudWatchFullAccess"
-}
+// resource "aws_iam_user_policy_attachment" "admin_cloudwatch_admin" {
+//   user       = "${aws_iam_user.cloudwright_admin.name}"
+//   policy_arn = "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+// }
 
 resource "aws_iam_policy" "sqs_send_receive" {
   name        = "CloudWrightSendSQSMessage${var.deployment_zone_namespace}"
   path        = "${local.iam_path}"
-  description = "My test policy"
 
   policy = <<EOF
 {
@@ -149,7 +150,7 @@ resource "aws_iam_policy" "sqs_send_receive" {
       "sqs:DeleteMessage",
       "sqs:GetQueueAttributes"
     ],
-    "Resource": "*"
+    "Resource": "arn:aws:sqs:*:*:cldwrt*"
   }]}
 EOF
 }
@@ -165,9 +166,29 @@ resource "aws_iam_role_policy_attachment" "function_lambda_vpc_use" {
 }
 
 
+resource "aws_iam_policy" "invoker_lambda_invoke" {
+  name        = "CloudWrightFunctionExecute${var.deployment_zone_namespace}"
+  path        = "${local.iam_path}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "lambda:InvokeFunction"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:lambda:*:*:*:cldwrt*"
+    }
+  ]
+}
+EOF
+}
+
 resource "aws_iam_role_policy_attachment" "invoker_lambda_execute" {
   role       = "${aws_iam_role.cloudwright_invoker.name}"
-  policy_arn = "arn:aws:iam::aws:policy/AWSLambdaExecute"
+  policy_arn = aws_iam_policy.invoker_lambda_invoke.arn
 }
 
 resource "aws_kms_key" "cloudwright_key" {
@@ -215,3 +236,118 @@ resource "aws_api_gateway_rest_api" "gateway" {
     types = ["REGIONAL"]
   }
 }
+
+resource "aws_iam_policy" "gateway_admin" {
+  name        = "CloudWrightGatewayAdmin${var.deployment_zone_namespace}"
+  path        = "${local.iam_path}"
+  description = "My test policy"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "apigateway:*"
+      ],
+      "Effect": "Allow",
+      "Resource": "${aws_api_gateway_rest_api.gateway.arn}*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_user_policy_attachment" "admin_gateway_admin" {
+  user       = "${aws_iam_user.cloudwright_admin.name}"
+  policy_arn =  aws_iam_policy.gateway_admin.arn
+}
+
+resource "aws_iam_policy" "admin_cldwrt_admin_policy" {
+  name        = "CloudWrightManageCloudWrightResources${var.deployment_zone_namespace}"
+  path        = "${local.iam_path}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "lambda:*"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:lambda:*:*:*:cldwrt*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "sqs:*"
+      ],
+      "Resource": "arn:aws:sqs:*:*:cldwrt*"
+    },
+     {
+      "Effect": "Allow",
+      "Action": [
+        "cloudwatch:*",
+        "events:*"
+      ],
+      "Resource": [
+        "arn:aws:events:*:*:rule/cldwrt*",
+        "arn:aws:logs:*:*:log-group:/aws/lambda/cldwrt*"
+      ]
+    },
+     {
+      "Effect": "Allow",
+      "Action": [
+        "iam:ListRolePolicies",
+        "iam:ListAttachedRolePolicies",
+        "iam:GetRole",
+        "iam:PassRole"
+      ],
+      "Resource": [
+        "${aws_iam_role.cloudwright_function.arn}",
+        "${aws_iam_role.cloudwright_invoker.arn}"
+
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:ListEventSourceMappings"
+      ],
+      "Resource":"*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "lambda:DeleteEventSourceMapping",
+        "lambda:UpdateEventSourceMapping",
+        "lambda:CreateEventSourceMapping",
+        "lambda:GetEventSourceMapping"
+      ],
+      "Resource":"*",
+      "Condition": {
+        "StringLike": {
+            "lambda:FunctionArn": "arn:aws:lambda:*:*:function:cldwrt*"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeVpcs"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_user_policy_attachment" "admin_manage" {
+  user       = "${aws_iam_user.cloudwright_admin.name}"
+  policy_arn =  aws_iam_policy.admin_cldwrt_admin_policy.arn
+}
+
