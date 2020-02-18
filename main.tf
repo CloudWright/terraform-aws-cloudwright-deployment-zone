@@ -44,7 +44,7 @@ EOF
 }
 
 resource "aws_iam_role" "cloudwright_invoker" {
-  name = "${var.deployment_zone_namespace}-cw-invoke"
+  name = "${var.deployment_zone_namespace}-cw-invk"
   path = "${local.iam_path}"
   assume_role_policy = <<EOF
 {
