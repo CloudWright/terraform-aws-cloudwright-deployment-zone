@@ -289,7 +289,10 @@ resource "aws_iam_policy" "admin_cldwrt_admin_policy" {
       "Effect": "Allow",
       "Action": [
         "cloudwatch:*",
-        "events:*"
+        "events:*",
+        "logs:List*",
+        "logs:Get*",
+        "logs:Describe*"
       ],
       "Resource": [
         "arn:aws:events:*:*:rule/cldwrt*",
